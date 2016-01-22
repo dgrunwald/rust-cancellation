@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["CancellationToken","A CancellationToken is used to query whether an operation should be canceled."],["CancellationTokenSource",""],["OperationCanceled","Unit struct used to indicate that an operation was canceled."]]});
