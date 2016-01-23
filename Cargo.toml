@@ -1,0 +1,16 @@
+[package]
+name = "cancellation"
+version = "0.1.0"
+authors = ["Daniel Grunwald <daniel@danielgrunwald.de>"]
+description = "A C#-like CancellationToken for Rust"
+readme = "README.md"
+exclude = [
+    ".gitignore",
+    ".travis.yml",
+    "appveyor.yml",
+]
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
