@@ -18,7 +18,7 @@ To use `cancellation`, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-cancellation = { git = "https://github.com/dgrunwald/rust-cancellation.git" }
+cancellation = "0.1"
 ```
 
 For more information, see the [documentation](http://dgrunwald.github.io/rust-cancellation/doc/cancellation/)

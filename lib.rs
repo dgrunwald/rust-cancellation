@@ -257,8 +257,8 @@ impl CancellationToken {
         self.status.load(Ordering::Acquire) >= STATUS_CANCELING
     }
 
-    /// Returns Ok(()) if this token has not been canceled.
-    /// Returns Err(OperationCanceled) if this token has been canceled.
+    /// Returns `Ok(())` if this token has not been canceled.
+    /// Returns `Err(OperationCanceled)` if this token has been canceled.
     ///
     /// This is an alternative to `is_canceled()` that can be
     /// used with the `try!()` macro.

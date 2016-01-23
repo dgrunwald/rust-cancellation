@@ -4,10 +4,15 @@ version = "0.1.0"
 authors = ["Daniel Grunwald <daniel@danielgrunwald.de>"]
 description = "A C#-like CancellationToken for Rust"
 readme = "README.md"
+homepage = "https://github.com/dgrunwald/rust-cancellation"
+repository = "https://github.com/dgrunwald/rust-cancellation.git"
+documentation = "http://dgrunwald.github.io/rust-cancellation/doc/cancellation/"
+license = "MIT"
 exclude = [
     ".gitignore",
     ".travis.yml",
     "appveyor.yml",
+    "Makefile",
 ]
 
 [lib]
