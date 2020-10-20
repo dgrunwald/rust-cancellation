@@ -39,7 +39,7 @@ use std::{time, thread};
 fn cancelable_sum(values: &[i32], ct: &CancellationToken) -> Result<i32, OperationCanceled> {
     let mut sum = 0;
     for val in values {
-        try!(ct.result());
+        ct.result()?;
         sum = sum + val;
         thread::sleep(time::Duration::from_secs(1));
     }
@@ -94,7 +94,7 @@ fn main() {
 **/
 
 use std::{fmt, ops, mem, ptr, io, error, time, thread};
-use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 #[repr(C)]
@@ -132,7 +132,7 @@ unsafe impl Sync for CancellationToken {}
 unsafe impl Send for CancellationToken {}
 
 static NO_CANCELLATION: CancellationToken = CancellationToken {
-    status: ATOMIC_USIZE_INIT, //AtomicUsize::new(STATUS_CANNOT_BE_CANCELED),
+    status: AtomicUsize::new(STATUS_CANNOT_BE_CANCELED),
     registrations: None
 };
 
@@ -158,7 +158,7 @@ impl<C> FnOnceOption for Option<C> where C: FnOnce() {
 /// They are unsafely shared across threads.
 /// Access is synchronized using the cancellation token's mutex.
 struct Registration<'a> {
-    on_cancel: &'a mut (FnOnceOption + Send + 'a),
+    on_cancel: &'a mut (dyn FnOnceOption + Send + 'a),
     cancellation_token: &'a CancellationToken,
     // Next registration in the linked list.
     next: *mut Registration<'static>,
@@ -178,7 +178,7 @@ unsafe fn erase_lifetime(r: &mut Registration) -> *mut Registration<'static> {
 /// May only be called while the registration mutex is acquired.
 /// Assumes that r.link_to_this is not null.
 unsafe fn unlink(r: &mut Registration) {
-    assert!(*r.link_to_this == erase_lifetime(r));
+    assert_eq!(*r.link_to_this, erase_lifetime(r));
     // let previous node point to the next:
     *r.link_to_this = r.next;
     if !r.next.is_null() {
@@ -281,7 +281,7 @@ impl CancellationToken {
         if status == STATUS_CANCELED {
             return; // already canceled
         }
-        assert!(status == STATUS_NOT_CANCELED);
+        assert_eq!(status, STATUS_NOT_CANCELED);
         self.status.store(STATUS_CANCELING, Ordering::Release);
         while !registrations.is_null() {
             unsafe {
@@ -327,7 +327,7 @@ impl CancellationToken {
         // unnecessarily monomorphized.
         fn init_registration<'a>(
                 token: &'a CancellationToken,
-                on_cancel: &'a mut (FnOnceOption + Send + 'a),
+                on_cancel: &'a mut (dyn FnOnceOption + Send + 'a),
                 registration: &mut Option<Registration<'a>>)
         {
             // Check the status before acquiring the lock.
@@ -342,7 +342,7 @@ impl CancellationToken {
                             // Insert registration into linked list
                             let first_registration: &mut *mut Registration = &mut *mutex_guard;
                             *registration = Some(Registration {
-                                on_cancel: on_cancel,
+                                on_cancel,
                                 cancellation_token: token,
                                 next: *first_registration,
                                 link_to_this: first_registration
@@ -415,7 +415,7 @@ impl ops::Deref for CancellationTokenSource {
 
 impl fmt::Display for OperationCanceled {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        f.write_str(error::Error::description(self))
+        f.write_str(&self.to_string())
     }
 }
 
